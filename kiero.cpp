@@ -147,6 +147,83 @@ kiero::Status::Enum kiero::init(RenderType::Enum _renderType)
 				return Status::Success;
 #endif
 			}
+			if (_renderType == RenderType::D3D9EX) {
+
+                HMODULE libD3D9;
+                if ((libD3D9 = ::GetModuleHandle(KIERO_TEXT("d3d9.dll"))) == NULL)
+                {
+                    ::DestroyWindow(window);
+                    ::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+                    return Status::ModuleNotFoundError;
+                }
+
+                void* Direct3DCreate9Ex;
+                if ((Direct3DCreate9Ex = ::GetProcAddress(libD3D9, "Direct3DCreate9Ex")) == NULL)
+                {
+                    ::DestroyWindow(window);
+                    ::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+                    return Status::UnknownError;
+                }
+
+                void* mallocD3D9EX = malloc(sizeof(LPDIRECT3D9EX));
+                LPDIRECT3D9EX direct3D9ex = (static_cast<LPDIRECT3D9EX>(mallocD3D9EX));
+                if ((((HRESULT(__stdcall*)(uint32_t, LPDIRECT3D9EX*))(Direct3DCreate9Ex))(D3D_SDK_VERSION, &direct3D9ex)) != S_OK)
+                {
+                    ::DestroyWindow(window);
+                    ::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+                    return Status::UnknownError;
+                }
+
+                D3DPRESENT_PARAMETERS params;
+                params.BackBufferWidth = 0;
+                params.BackBufferHeight = 0;
+                params.BackBufferFormat = D3DFMT_UNKNOWN;
+                params.BackBufferCount = 0;
+                params.MultiSampleType = D3DMULTISAMPLE_NONE;
+                params.MultiSampleQuality = NULL;
+                params.SwapEffect = D3DSWAPEFFECT_DISCARD;
+                params.hDeviceWindow = window;
+                params.Windowed = 1;
+                params.EnableAutoDepthStencil = 0;
+                params.AutoDepthStencilFormat = D3DFMT_UNKNOWN;
+                params.Flags = NULL;
+                params.FullScreen_RefreshRateInHz = 0;
+                params.PresentationInterval = 0;
+
+                void* mallocD3DDevice9EX = malloc(sizeof(LPDIRECT3DDEVICE9EX));
+                LPDIRECT3DDEVICE9EX device = static_cast<LPDIRECT3DDEVICE9EX>(mallocD3DDevice9EX);
+
+                if (direct3D9ex->CreateDeviceEx(D3DADAPTER_DEFAULT, D3DDEVTYPE_NULLREF, window, D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_DISABLE_DRIVER_MANAGEMENT, &params, NULL, &device) < 0)
+                {
+                    direct3D9ex->Release();
+                    ::DestroyWindow(window);
+                    ::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+                    return Status::UnknownError;
+                }
+
+                g_methodsTable = (uint150_t*)::calloc(134, sizeof(uint150_t));
+                ::memcpy(g_methodsTable, *(uint150_t**)device, 134 * sizeof(uint150_t));
+
+#if KIERO_USE_MINHOOK
+                MH_Initialize();
+#endif
+
+                device->Release();
+                free(mallocD3D9EX);
+                mallocD3D9EX = nullptr;
+
+                direct3D9ex->Release();
+                free(mallocD3DDevice9EX);
+                mallocD3DDevice9EX = nullptr;
+
+                g_renderType = RenderType::D3D9EX;
+
+                ::DestroyWindow(window);
+                ::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+
+                return Status::Success;
+#endif
+			}
 			else if (_renderType == RenderType::D3D10)
 			{
 #if KIERO_INCLUDE_D3D10
