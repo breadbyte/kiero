@@ -2,7 +2,7 @@
 #include <Windows.h>
 #include <assert.h>
 
-#if KIERO_INCLUDE_D3D9
+#if KIERO_INCLUDE_D3D9 || KIERO_INCLUDE_D3D9EX
 # include <d3d9.h>
 #endif
 
