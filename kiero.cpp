@@ -148,7 +148,7 @@ kiero::Status::Enum kiero::init(RenderType::Enum _renderType)
 #endif
 			}
 			if (_renderType == RenderType::D3D9EX) {
-
+#if KIERO_INCLUDE_D3D9EX
                 HMODULE libD3D9;
                 if ((libD3D9 = ::GetModuleHandle(KIERO_TEXT("d3d9.dll"))) == NULL)
                 {
