@@ -165,9 +165,9 @@ kiero::Status::Enum kiero::init(RenderType::Enum _renderType)
                     return Status::UnknownError;
                 }
 
-                void* mallocD3D9EX = malloc(sizeof(LPDIRECT3D9EX));
-                LPDIRECT3D9EX direct3D9ex = (static_cast<LPDIRECT3D9EX>(mallocD3D9EX));
-                if ((((HRESULT(__stdcall*)(uint32_t, LPDIRECT3D9EX*))(Direct3DCreate9Ex))(D3D_SDK_VERSION, &direct3D9ex)) != S_OK)
+                LPDIRECT3D9EX direct3D9ex;
+                (((HRESULT(__stdcall*)(uint32_t, LPDIRECT3D9EX*))(Direct3DCreate9Ex))(D3D_SDK_VERSION, &direct3D9ex));
+                if (direct3D9ex == NULL)
                 {
                     ::DestroyWindow(window);
                     ::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
@@ -190,9 +190,7 @@ kiero::Status::Enum kiero::init(RenderType::Enum _renderType)
                 params.FullScreen_RefreshRateInHz = 0;
                 params.PresentationInterval = 0;
 
-                void* mallocD3DDevice9EX = malloc(sizeof(LPDIRECT3DDEVICE9EX));
-                LPDIRECT3DDEVICE9EX device = static_cast<LPDIRECT3DDEVICE9EX>(mallocD3DDevice9EX);
-
+                LPDIRECT3DDEVICE9EX device;
                 if (direct3D9ex->CreateDeviceEx(D3DADAPTER_DEFAULT, D3DDEVTYPE_NULLREF, window, D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_DISABLE_DRIVER_MANAGEMENT, &params, NULL, &device) < 0)
                 {
                     direct3D9ex->Release();
@@ -209,12 +207,10 @@ kiero::Status::Enum kiero::init(RenderType::Enum _renderType)
 #endif
 
                 device->Release();
-                free(mallocD3D9EX);
-                mallocD3D9EX = nullptr;
+                device = nullptr;
 
                 direct3D9ex->Release();
-                free(mallocD3DDevice9EX);
-                mallocD3DDevice9EX = nullptr;
+                direct3D9ex = nullptr;
 
                 g_renderType = RenderType::D3D9EX;
 
